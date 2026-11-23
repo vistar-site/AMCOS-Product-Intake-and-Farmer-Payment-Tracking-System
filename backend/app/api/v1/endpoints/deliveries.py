@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, Query, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Response
 from sqlalchemy.orm import Session
 
 from app.api.deps import require_permission
@@ -14,6 +14,7 @@ from app.schemas.delivery import (
     DeliveryRead, SyncFarmer, SyncRequest, SyncResponse, VoidRequest,
 )
 from app.services import delivery_service as svc
+from app.services.notification_service import process_queue_background
 from app.services.receipt_pdf import render_receipt
 
 router = APIRouter(tags=["deliveries"])
@@ -24,9 +25,11 @@ class DeliveryPage(Page[DeliveryRead]):
 
 
 @router.post("/deliveries", response_model=DeliveryCreateResult)
-def create(body: DeliveryCreate, response: Response, user: User = Depends(require_permission("delivery.create")),
-           db: Session = Depends(get_db)):
+def create(body: DeliveryCreate, response: Response, background: BackgroundTasks,
+           user: User = Depends(require_permission("delivery.create")), db: Session = Depends(get_db)):
     delivery, created, warnings = svc.create_online(db, user, body)
+    if created:
+        background.add_task(process_queue_background, user.organization_id)  # SMS after the response
     response.status_code = 201 if created else 200
     return DeliveryCreateResult(delivery=delivery, created=created, warnings=warnings)
 
@@ -85,9 +88,10 @@ def void(delivery_id: uuid.UUID, body: VoidRequest, user: User = Depends(require
 
 # --- Offline sync ---
 @router.post("/sync/deliveries", response_model=SyncResponse, tags=["sync"])
-def sync_deliveries(body: SyncRequest, user: User = Depends(require_permission("delivery.create")),
-                    db: Session = Depends(get_db)):
+def sync_deliveries(body: SyncRequest, background: BackgroundTasks,
+                    user: User = Depends(require_permission("delivery.create")), db: Session = Depends(get_db)):
     results = svc.sync(db, user, body.device_id, body.deliveries)
+    background.add_task(process_queue_background, user.organization_id)
     return SyncResponse(results=results, server_time=datetime.now(UTC))
 
 

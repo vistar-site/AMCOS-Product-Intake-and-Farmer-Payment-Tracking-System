@@ -20,6 +20,7 @@ from app.integrations.payments.base import PaymentInstruction
 from app.integrations.payments.file_export import get_exporter
 from app.models import Farmer, FarmerPayout, Organization, Payment, PaymentBatch, PayoutRun, User
 from app.services import audit_service
+from app.services.notification_service import enqueue_payment_confirmation
 from app.services.numbering import next_number
 from app.services.scope import org_id
 
@@ -196,6 +197,7 @@ def record_results(db: Session, actor: User, batch_id: uuid.UUID, results: list[
                 raise ValidationFailedError(f"A transaction reference is required for {p.farmer.full_name}")
             p.status, p.transaction_ref, p.paid_at = "paid", r["transaction_ref"], r.get("paid_at") or now
             p.payout.status = "paid"
+            enqueue_payment_confirmation(db, p)
         else:
             if not r.get("failure_reason"):
                 raise ValidationFailedError(f"A failure reason is required for {p.farmer.full_name}")

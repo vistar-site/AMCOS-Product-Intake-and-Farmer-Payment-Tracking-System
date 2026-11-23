@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Query, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Response
 from sqlalchemy.orm import Session
 
 from app.api.deps import require_permission
@@ -12,6 +12,7 @@ from app.schemas.finance import (
 )
 from app.services import finance_service as fin
 from app.services import payment_service as pay
+from app.services.notification_service import process_queue_background
 
 router = APIRouter()
 db_dep = Depends(get_db)
@@ -139,9 +140,11 @@ def export(batch_id: uuid.UUID, format: str = Query("csv", pattern="^(csv|xlsx)$
 
 
 @router.post("/payment-batches/{batch_id}/results", response_model=PaymentBatchRead, tags=["payments"])
-def results(batch_id: uuid.UUID, body: ResultsBody, u: User = Depends(require_permission("payment.reconcile")),
-            db: Session = db_dep):
-    return pay.record_results(db, u, batch_id, [r.model_dump() for r in body.results])
+def results(batch_id: uuid.UUID, body: ResultsBody, background: BackgroundTasks,
+            u: User = Depends(require_permission("payment.reconcile")), db: Session = db_dep):
+    out = pay.record_results(db, u, batch_id, [r.model_dump() for r in body.results])
+    background.add_task(process_queue_background, u.organization_id)
+    return out
 
 
 @router.post("/payment-batches/{batch_id}/payments/{payment_id}/reverse", response_model=PaymentBatchRead, tags=["payments"])

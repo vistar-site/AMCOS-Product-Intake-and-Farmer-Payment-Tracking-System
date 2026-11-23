@@ -155,7 +155,10 @@ def record_delivery(db: Session, actor: User, data: DeliveryCreate, source: str 
                          after={"receipt_no": delivery.receipt_no, "farmer_id": str(delivery.farmer_id),
                                 "crop": crop.code, "gross": str(gross), "tare": str(tare),
                                 "net": str(delivery.net_weight), "source": source})
-    return _get(db, org, delivery.id), True, warnings
+    saved = _get(db, org, delivery.id)
+    from app.services.notification_service import enqueue_delivery_receipt  # avoid import cycle
+    enqueue_delivery_receipt(db, saved)  # queued in THIS transaction; sent after commit
+    return saved, True, warnings
 
 
 def create_online(db: Session, actor: User, data: DeliveryCreate):

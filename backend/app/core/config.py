@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 15
     cors_origins: str = "http://localhost:5173"
     timezone: str = "Africa/Dar_es_Salaam"
+    sms_provider: str = "mock"   # only "mock" is implemented; see app/integrations/sms/
 
     @property
     def cors_origin_list(self) -> list[str]:

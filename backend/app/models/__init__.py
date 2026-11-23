@@ -5,6 +5,7 @@ from app.models.finance import (
     DeductionType, FarmerPayout, InputLoan, LoanRepayment, Payment, PaymentBatch, PayoutLine, PayoutRun,
     PayoutRunAllocation,
 )
+from app.models.notification import SmsMessage, SmsTemplate
 from app.models.organization import Organization
 from app.models.reference import CollectionCentre, Crop, CropGrade, Season, Warehouse
 from app.models.system import AuditLog, NumberSequence, Setting
@@ -15,6 +16,7 @@ from app.models.warehouse import (
 )
 
 __all__ = [
+    "SmsMessage", "SmsTemplate",
     "DeductionType", "FarmerPayout", "InputLoan", "LoanRepayment", "Payment", "PaymentBatch", "PayoutLine",
     "PayoutRun", "PayoutRunAllocation",
     "AggregationBatch", "Auction", "AuctionLot", "BatchDelivery", "Discrepancy", "DispatchBatch",
