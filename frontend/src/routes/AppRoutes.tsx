@@ -1,6 +1,10 @@
 import { Route, Routes } from 'react-router-dom'
 import AppLayout from '../layouts/AppLayout'
 import { NAVIGATION } from '../layouts/navigation'
+import AuctionDetailPage from '../pages/AuctionDetailPage'
+import AuctionsPage from '../pages/AuctionsPage'
+import BatchDetailPage from '../pages/BatchDetailPage'
+import BatchesPage from '../pages/BatchesPage'
 import CentresPage from '../pages/CentresPage'
 import ChangePasswordPage from '../pages/ChangePasswordPage'
 import CropsPage from '../pages/CropsPage'
@@ -14,6 +18,7 @@ import PlaceholderPage from '../pages/PlaceholderPage'
 import RecordDeliveryPage from '../pages/RecordDeliveryPage'
 import SyncPage from '../pages/SyncPage'
 import UsersPage from '../pages/UsersPage'
+import WarehousePage from '../pages/WarehousePage'
 import { RequireAuth, RequirePermission } from './ProtectedRoute'
 
 const BUILT: Record<string, React.ReactNode> = {
@@ -25,6 +30,9 @@ const BUILT: Record<string, React.ReactNode> = {
   '/deliveries': <DeliveriesPage />,
   '/deliveries/new': <RecordDeliveryPage />,
   '/sync': <SyncPage />,
+  '/batches': <BatchesPage />,
+  '/warehouse': <WarehousePage />,
+  '/auctions': <AuctionsPage />,
 }
 const PHASE: Record<string, number> = {
   '/batches': 6, '/warehouse': 6, '/auctions': 6, '/payouts': 7, '/payments': 7,
@@ -49,6 +57,10 @@ export default function AppRoutes() {
           </Route>
           <Route element={<RequirePermission permission="delivery.view" />}>
             <Route path="/deliveries/:id" element={<DeliveryDetailPage />} />
+          </Route>
+          <Route element={<RequirePermission permission="auction.view" />}>
+            <Route path="/batches/:id" element={<BatchDetailPage />} />
+            <Route path="/auctions/:id" element={<AuctionDetailPage />} />
           </Route>
           <Route path="*" element={<PlaceholderPage title="Page not found" phase={0} />} />
         </Route>

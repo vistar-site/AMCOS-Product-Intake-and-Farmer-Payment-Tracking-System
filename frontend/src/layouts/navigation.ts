@@ -20,9 +20,9 @@ export const NAVIGATION: NavGroup[] = [
     { to: '/sync', label: 'Sync status', icon: RefreshCw, permission: 'delivery.create', ready: true },
   ] },
   { label: 'Warehouse & sales', items: [
-    { to: '/batches', label: 'Aggregation', icon: Truck, permission: 'batch.manage' },
-    { to: '/warehouse', label: 'Warehouse', icon: Warehouse, permission: 'warehouse_receipt.manage' },
-    { to: '/auctions', label: 'Auctions', icon: Gavel, permission: 'auction.view' },
+    { to: '/batches', label: 'Aggregation', icon: Truck, permission: 'auction.view', ready: true },
+    { to: '/warehouse', label: 'Warehouse', icon: Warehouse, permission: 'auction.view', ready: true },
+    { to: '/auctions', label: 'Auctions', icon: Gavel, permission: 'auction.view', ready: true },
   ] },
   { label: 'Finance', items: [
     { to: '/payouts', label: 'Payouts', icon: Wallet, permission: 'payout.view' },

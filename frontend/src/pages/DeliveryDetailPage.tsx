@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import type { DeliveryTrace } from '../types/warehouse'
+import { formatPrice } from '../utils/money'
 import { ArrowLeft, Ban, FileDown, PencilLine } from 'lucide-react'
 import { api, openFile } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useDelivery } from '../features/deliveries/api'
 import { useApiMutation, useCrops } from '../features/reference/api'
-import { fmtDateTime, Select, Textarea } from '../components/form'
+import { fmtDate, fmtDateTime, Select, Textarea } from '../components/form'
 import { Alert, Badge, Button, Field, Input, Modal, Skeleton } from '../components/ui'
 import type { DeliveryDetail } from '../types/domain'
 import { formatKg, isValidWeight, netWeight } from '../utils/weight'
@@ -67,6 +70,8 @@ export default function DeliveryDetailPage() {
       </div>
       {d.notes && <p className="mt-4 rounded-lg bg-white p-4 text-sm ring-1 ring-slate-200"><b>Notes:</b> {d.notes}</p>}
 
+      <TracePanel deliveryId={d.id} />
+
       <section className="mt-6">
         <h2 className="mb-3 font-semibold">Correction history</h2>
         {review.error && <div className="mb-2"><Alert>{review.error.message}</Alert></div>}
@@ -99,6 +104,37 @@ export default function DeliveryDetailPage() {
       {amending && <AmendModal delivery={d} onClose={() => setAmending(false)} />}
       {voiding && <VoidModal id={d.id} onClose={() => setVoiding(false)} />}
     </div>
+  )
+}
+
+/** Where did this farmer's produce go? Batch -> dispatch -> warehouse -> auction lots. */
+function TracePanel({ deliveryId }: { deliveryId: string }) {
+  const { can } = useAuth()
+  const t = useQuery({ queryKey: ['deliveries', deliveryId, 'trace'], queryFn: () => api<DeliveryTrace>(`/deliveries/${deliveryId}/trace`) })
+  if (!t.data) return null
+  const steps: { label: string; done: boolean; body: React.ReactNode }[] = [
+    { label: 'Aggregated', done: !!t.data.batch, body: t.data.batch && (can('auction.view')
+      ? <Link className="font-mono text-brand-700 hover:underline" to={`/batches/${t.data.batch.id}`}>{t.data.batch.batch_no}</Link>
+      : <span className="font-mono">{t.data.batch.batch_no}</span>) },
+    { label: 'Dispatched', done: !!t.data.dispatch, body: t.data.dispatch && `${t.data.dispatch.dispatch_no} · ${fmtDate(t.data.dispatch.dispatch_date)}` },
+    { label: 'Received at warehouse', done: !!t.data.warehouse_receipt, body: t.data.warehouse_receipt && `Receipt ${t.data.warehouse_receipt.receipt_no} · ${fmtDate(t.data.warehouse_receipt.receipt_date)}` },
+    { label: 'Sold at auction', done: t.data.allocations.length > 0, body: t.data.allocations.length > 0 && (
+      <ul className="space-y-0.5">{t.data.allocations.map((a) => (
+        <li key={a.auction_ref + a.lot_no}>{a.auction_ref} lot {a.lot_no}: {formatKg(a.weight_shared)} (loss shared) / {formatKg(a.weight_absorbed)} (AMCOS absorbs) at {formatPrice(a.price_per_kg)}</li>
+      ))}</ul>) },
+  ]
+  return (
+    <section className="mt-6 rounded-lg bg-white p-5 ring-1 ring-slate-200">
+      <h2 className="mb-3 font-semibold">Traceability</h2>
+      <ol className="space-y-3">
+        {steps.map((s) => (
+          <li key={s.label} className="flex gap-3 text-sm">
+            <span className={`mt-0.5 size-3 shrink-0 rounded-full ${s.done ? 'bg-brand-600' : 'bg-slate-200'}`} />
+            <div><p className={s.done ? 'font-medium' : 'text-slate-400'}>{s.label}</p>{s.done && <div className="text-slate-600">{s.body}</div>}</div>
+          </li>
+        ))}
+      </ol>
+    </section>
   )
 }
 

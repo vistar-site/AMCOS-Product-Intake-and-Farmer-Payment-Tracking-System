@@ -242,6 +242,18 @@ def get_delivery(db: Session, actor: User, delivery_id: uuid.UUID) -> Delivery:
     return d
 
 
+def _ensure_not_batched(db: Session, d: Delivery) -> None:
+    """Once a delivery is aggregated, changing it would silently break batch, warehouse and
+    payout figures. It must first be removed from its (still open) batch."""
+    from app.models import AggregationBatch, BatchDelivery
+    row = db.execute(select(AggregationBatch.batch_no, AggregationBatch.status)
+                     .join(BatchDelivery, BatchDelivery.batch_id == AggregationBatch.id)
+                     .where(BatchDelivery.delivery_id == d.id)).first()
+    if row:
+        hint = "remove it from the batch first" if row.status == "open" else "the batch is already closed"
+        raise ConflictError(f"Delivery is part of batch {row.batch_no}; {hint}")
+
+
 def _values(d: Delivery) -> dict:
     return {"gross_weight": str(d.gross_weight), "tare_weight": str(d.tare_weight),
             "net_weight": str(d.net_weight), "grade_id": str(d.grade_id) if d.grade_id else None, "notes": d.notes}
@@ -251,6 +263,7 @@ def request_amendment(db: Session, actor: User, delivery_id: uuid.UUID, data: Am
     d = get_delivery(db, actor, delivery_id)
     if d.status == "voided":
         raise ValidationFailedError("A voided delivery cannot be amended")
+    _ensure_not_batched(db, d)
     if any(a.status == "pending" for a in d.amendments):
         raise ConflictError("This delivery already has a pending correction")
     gross = (data.gross_weight if data.gross_weight is not None else d.gross_weight).quantize(Q3)
@@ -287,6 +300,8 @@ def review_amendment(db: Session, actor: User, delivery_id: uuid.UUID, amendment
         raise ConflictError(f"Correction already {a.status}")
     if a.requested_by == actor.id:
         raise PermissionDeniedError("You cannot approve your own correction")  # separation of duties
+    if approve:
+        _ensure_not_batched(db, d)
     if approve and _values(d) != a.old_values:
         raise ConflictError("The delivery changed after this correction was requested; request it again")
     a.status = "approved" if approve else "rejected"
@@ -308,6 +323,7 @@ def void_delivery(db: Session, actor: User, delivery_id: uuid.UUID, reason: str)
     d = get_delivery(db, actor, delivery_id)
     if d.status == "voided":
         raise ConflictError("Delivery is already voided")
+    _ensure_not_batched(db, d)
     d.status, d.void_reason, d.voided_by, d.voided_at = "voided", reason, actor.id, datetime.now(UTC)
     for a in d.amendments:
         if a.status == "pending":

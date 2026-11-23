@@ -402,7 +402,11 @@ Docker fundamentals are taught step by step in `docs/DOCKER_GUIDE.md` during Pha
 
 1. **UUID primary keys** — required for offline creation; slightly larger indexes, acceptable.
 2. **JWT access token (15 min) in memory + refresh token (httpOnly cookie, rotated, stored hashed in DB)** — avoids storing long-lived tokens in localStorage (XSS risk) and allows server-side revocation/logout.
-3. **Sold-quantity allocation (the hardest business rule).** A batch of 5,000 kg from 40 farmers may arrive as 4,950 kg at the warehouse and be sold in 2 lots at different prices. **[ASSUMPTION — to confirm with a real AMCOS]** Default policy: each farmer's eligible weight = their net kg × (batch sold kg ÷ batch delivered kg), and each lot's price is applied pro-rata across the batch's farmers. Warehouse loss is therefore shared proportionally. The policy is stored per payout run so it's explicit and auditable; alternative policies (e.g. pay on delivered kg, AMCOS absorbs loss) can be added as options.
+3. **Sold-quantity allocation (the hardest business rule) — DECIDED: both policies supported.** A batch of 5,000 kg from 40 farmers may arrive as 4,950 kg at the warehouse and be sold in several lots at different prices. When an auction is approved, every lot is split across the batch's deliveries (largest-remainder method in whole grams, so parts always sum exactly) and **two weights are stored per delivery per lot** in `lot_allocations`:
+   - `weight_shared` = lot kg × delivery kg ÷ batch delivered kg → warehouse loss is shared by the farmers pro rata.
+   - `weight_absorbed` = lot kg × delivery kg ÷ batch accepted kg → once the batch is fully sold, each farmer is paid on full delivered kg; the AMCOS bears the loss.
+
+   The payout run (Phase 7) records which policy it used, so every statement states its basis. Worked example: `backend/tests/test_warehouse_auction.py`.
 4. **Rounding.** Compute with full `Decimal` precision, round each payout line to 2 dp with `ROUND_HALF_UP`, and store per-line amounts so totals are reproducible. Lot-level rounding remainders are recorded explicitly, not lost.
 5. **Deductions exceeding gross.** Levies applied first (priority order), then loan repayments capped at the remaining amount (and loan's max %), then others. If still negative → payout flagged `needs_review`, net set to 0, nothing paid until a manager decides.
 6. **Maker–checker** for payment batches enforced in service *and* by a DB CHECK constraint.
