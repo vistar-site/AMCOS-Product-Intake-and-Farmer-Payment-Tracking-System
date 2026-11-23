@@ -12,11 +12,11 @@ export const NAVIGATION: NavGroup[] = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard, permission: 'delivery.view', ready: true },
   ] },
   { label: 'Collection', items: [
-    { to: '/deliveries/new', label: 'Record delivery', icon: Scale, permission: 'delivery.create' },
-    { to: '/deliveries', label: 'Deliveries', icon: ClipboardList, permission: 'delivery.view' },
-    { to: '/farmers', label: 'Farmers', icon: Users, permission: 'farmer.view' },
-    { to: '/centres', label: 'Collection centres', icon: Building2, permission: 'centre.view' },
-    { to: '/crops', label: 'Crops & seasons', icon: Sprout, permission: 'crop.view' },
+    { to: '/deliveries/new', label: 'Record delivery', icon: Scale, permission: 'delivery.create', ready: true },
+    { to: '/deliveries', label: 'Deliveries', icon: ClipboardList, permission: 'delivery.view', ready: true },
+    { to: '/farmers', label: 'Farmers', icon: Users, permission: 'farmer.view', ready: true },
+    { to: '/centres', label: 'Collection centres', icon: Building2, permission: 'centre.view', ready: true },
+    { to: '/crops', label: 'Crops & seasons', icon: Sprout, permission: 'crop.view', ready: true },
   ] },
   { label: 'Warehouse & sales', items: [
     { to: '/batches', label: 'Aggregation', icon: Truck, permission: 'batch.manage' },

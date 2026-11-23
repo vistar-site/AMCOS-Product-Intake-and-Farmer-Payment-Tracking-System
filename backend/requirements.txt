@@ -10,3 +10,4 @@ pwdlib[argon2]==0.4.2
 pytest==9.2.0
 httpx==0.28.1
 pyjwt==2.15.1
+reportlab==5.1.0

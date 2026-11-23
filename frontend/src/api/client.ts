@@ -73,3 +73,17 @@ export async function api<T>(path: string, init: RequestInit & { json?: unknown 
   if (!r.ok) throw await parseError(r)
   return (r.status === 204 ? undefined : await r.json()) as T
 }
+
+/** Download a file (e.g. a PDF) with the auth header and open it in a new tab. */
+export async function openFile(path: string): Promise<void> {
+  const tab = window.open('', '_blank') // open synchronously so pop-up blockers allow it
+  const doFetch = () => fetch(`/api/v1${path}`, {
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}, credentials: 'same-origin',
+  })
+  let r = await doFetch()
+  if (r.status === 401 && await refreshAccessToken()) r = await doFetch()
+  if (!r.ok) { tab?.close(); throw await parseError(r) }
+  const url = URL.createObjectURL(await r.blob())
+  if (tab) tab.location.href = url
+  else window.location.href = url
+}
