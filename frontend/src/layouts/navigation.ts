@@ -1,6 +1,6 @@
 /** Sidebar definition. Each item lists the permission needed to see it. */
 import {
-  Banknote, BarChart3, Building2, ClipboardList, FileClock, Gavel, LayoutDashboard, MessageSquare,
+  Banknote, BarChart3, RefreshCw, Building2, ClipboardList, FileClock, Gavel, LayoutDashboard, MessageSquare,
   Scale, Settings, Sprout, Truck, Users, UserCog, Warehouse, Wallet, type LucideIcon,
 } from 'lucide-react'
 
@@ -17,6 +17,7 @@ export const NAVIGATION: NavGroup[] = [
     { to: '/farmers', label: 'Farmers', icon: Users, permission: 'farmer.view', ready: true },
     { to: '/centres', label: 'Collection centres', icon: Building2, permission: 'centre.view', ready: true },
     { to: '/crops', label: 'Crops & seasons', icon: Sprout, permission: 'crop.view', ready: true },
+    { to: '/sync', label: 'Sync status', icon: RefreshCw, permission: 'delivery.create', ready: true },
   ] },
   { label: 'Warehouse & sales', items: [
     { to: '/batches', label: 'Aggregation', icon: Truck, permission: 'batch.manage' },

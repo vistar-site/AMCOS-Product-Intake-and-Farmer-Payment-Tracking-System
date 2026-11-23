@@ -1,13 +1,24 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { KeyRound, LogOut, Menu, Sprout, X } from 'lucide-react'
+import { CloudOff, KeyRound, LogOut, Menu, RefreshCw, Sprout, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useSync } from '../context/SyncContext'
 import { NAVIGATION } from './navigation'
 
 export default function AppLayout() {
-  const { user, can, logout } = useAuth()
+  const { user, can, logout, status } = useAuth()
+  const { online, syncing, counts } = useSync()
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
+  const unsynced = counts.pending + counts.rejected + counts.conflict
+
+  async function handleLogout() {
+    if (unsynced > 0 && !window.confirm(
+      `${unsynced} delivery record(s) on this device have not reached the server.\n\n` +
+      'They stay on this device and will upload the next time YOU sign in here. Log out anyway?')) return
+    await logout()
+    navigate('/login')
+  }
 
   // Only show groups/items the user is permitted to use.
   const groups = NAVIGATION
@@ -50,9 +61,9 @@ export default function AppLayout() {
   )
 
   return (
-    <div className="min-h-screen lg:pl-64">
+    <div className="min-h-screen lg:pl-64 print:pl-0">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 hidden w-64 bg-brand-900 lg:block">{sidebar}</aside>
+      <aside className="fixed inset-y-0 left-0 hidden w-64 bg-brand-900 lg:block print:hidden">{sidebar}</aside>
 
       {/* Mobile drawer */}
       {open && (
@@ -67,16 +78,24 @@ export default function AppLayout() {
         </div>
       )}
 
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur">
+      <header className="print:hidden sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur">
         <button className="p-1 lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu"><Menu className="size-5" /></button>
         <div className="flex-1" />
-        <div className="text-right leading-tight">
+        <NavLink to="/sync" title="Sync status"
+          className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${
+            !online || status === 'offline' ? 'bg-amber-50 text-amber-800 ring-amber-200'
+              : unsynced ? 'bg-blue-50 text-blue-700 ring-blue-200' : 'bg-green-50 text-green-700 ring-green-200'}`}>
+          {!online || status === 'offline' ? <CloudOff className="size-3.5" /> : <RefreshCw className={`size-3.5 ${syncing ? 'animate-spin' : ''}`} />}
+          {!online ? 'Offline' : status === 'offline' ? 'Reconnecting' : 'Online'}
+          {unsynced > 0 && <span className="rounded-full bg-white/80 px-1.5">{unsynced} unsynced</span>}
+        </NavLink>
+        <div className="hidden text-right leading-tight sm:block">
           <p className="text-sm font-medium">{user?.full_name}</p>
           <p className="text-xs text-slate-500">{user?.roles.map((r) => r.name).join(', ')}</p>
         </div>
         <button onClick={() => navigate('/change-password')} className="rounded-md p-2 text-slate-500 hover:bg-slate-100"
           title="Change password" aria-label="Change password"><KeyRound className="size-4" /></button>
-        <button onClick={async () => { await logout(); navigate('/login') }}
+        <button onClick={handleLogout}
           className="rounded-md p-2 text-slate-500 hover:bg-slate-100" title="Log out" aria-label="Log out">
           <LogOut className="size-4" />
         </button>

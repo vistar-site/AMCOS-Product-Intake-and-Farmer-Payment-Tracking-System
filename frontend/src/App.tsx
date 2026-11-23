@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
 import { ApiError } from './api/client'
 import { AuthProvider } from './context/AuthContext'
+import { SyncProvider } from './context/SyncContext'
 import AppRoutes from './routes/AppRoutes'
 
 const queryClient = new QueryClient({
@@ -19,7 +20,9 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes />
+          <SyncProvider>
+            <AppRoutes />
+          </SyncProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

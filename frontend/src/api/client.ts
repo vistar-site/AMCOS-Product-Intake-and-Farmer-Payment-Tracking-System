@@ -18,23 +18,31 @@ export class ApiError extends Error {
 }
 
 let accessToken: string | null = null
-let refreshPromise: Promise<boolean> | null = null
+let refreshPromise: Promise<RefreshResult> | null = null
 let onSessionExpired: () => void = () => {}
 
 export const setAccessToken = (t: string | null) => { accessToken = t }
+export const hasAccessToken = () => accessToken !== null
 export const setSessionExpiredHandler = (fn: () => void) => { onSessionExpired = fn }
 
-export async function refreshAccessToken(): Promise<boolean> {
+/** 'ok' = new token; 'invalid' = server says log in again; 'network' = server unreachable. */
+export type RefreshResult = 'ok' | 'invalid' | 'network'
+
+export async function refreshSession(): Promise<RefreshResult> {
   refreshPromise ??= fetch('/api/v1/auth/refresh', { method: 'POST', credentials: 'same-origin' })
-    .then(async (r) => {
-      if (!r.ok) return false
+    .then(async (r): Promise<RefreshResult> => {
+      // A dev proxy with the backend down answers 5xx: treat as unreachable, not as logged out.
+      if (r.status >= 500) return 'network'
+      if (!r.ok) return 'invalid'
       setAccessToken((await r.json()).access_token)
-      return true
+      return 'ok'
     })
-    .catch(() => false)
+    .catch((): RefreshResult => 'network')
     .finally(() => { refreshPromise = null })
   return refreshPromise
 }
+
+export const refreshAccessToken = async () => (await refreshSession()) === 'ok'
 
 async function parseError(r: Response): Promise<ApiError> {
   try {
@@ -66,10 +74,14 @@ export async function api<T>(path: string, init: RequestInit & { json?: unknown 
   }
 
   if (r.status === 401 && retry && !path.startsWith('/auth/login')) {
-    if (await refreshAccessToken()) return api<T>(path, init, false)
+    const result = await refreshSession()
+    if (result === 'ok') return api<T>(path, init, false)
+    if (result === 'network') throw new ApiError(0, 'Cannot reach the server. Check your connection.')
     setAccessToken(null)
     onSessionExpired()
   }
+  // The Vite dev proxy returns 502/503/504 when the backend is down: same as offline.
+  if ([502, 503, 504].includes(r.status)) throw new ApiError(0, 'Cannot reach the server. Check your connection.')
   if (!r.ok) throw await parseError(r)
   return (r.status === 204 ? undefined : await r.json()) as T
 }

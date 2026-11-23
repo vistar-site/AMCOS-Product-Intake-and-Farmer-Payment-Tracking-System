@@ -18,7 +18,7 @@ export function RequireAuth() {
     )
   }
   if (status === 'anonymous') return <Navigate to="/login" replace state={{ from: location.pathname }} />
-  if (user?.must_change_password && location.pathname !== '/change-password') {
+  if (status === 'authenticated' && user?.must_change_password && location.pathname !== '/change-password') {
     return <Navigate to="/change-password" replace />
   }
   return <Outlet />

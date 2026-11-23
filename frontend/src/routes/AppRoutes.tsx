@@ -12,6 +12,7 @@ import FarmersPage from '../pages/FarmersPage'
 import LoginPage from '../pages/LoginPage'
 import PlaceholderPage from '../pages/PlaceholderPage'
 import RecordDeliveryPage from '../pages/RecordDeliveryPage'
+import SyncPage from '../pages/SyncPage'
 import UsersPage from '../pages/UsersPage'
 import { RequireAuth, RequirePermission } from './ProtectedRoute'
 
@@ -23,6 +24,7 @@ const BUILT: Record<string, React.ReactNode> = {
   '/farmers': <FarmersPage />,
   '/deliveries': <DeliveriesPage />,
   '/deliveries/new': <RecordDeliveryPage />,
+  '/sync': <SyncPage />,
 }
 const PHASE: Record<string, number> = {
   '/batches': 6, '/warehouse': 6, '/auctions': 6, '/payouts': 7, '/payments': 7,

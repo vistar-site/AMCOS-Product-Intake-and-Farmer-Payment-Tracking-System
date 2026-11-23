@@ -27,6 +27,26 @@ cd C:\Users\VISTAR\Projects\NextJs\AMCOS\frontend
 npm run dev                              # http://localhost:5173
 ```
 
+## Testing offline mode (PWA)
+
+The service worker only exists in a **production build** (in `npm run dev` it is
+disabled so code changes appear immediately). To test offline behaviour:
+
+```powershell
+cd C:\Users\VISTAR\Projects\NextJs\AMCOS\frontend
+npm run build
+npm run preview          # http://localhost:4173 (proxies /api to the backend on :8000)
+```
+
+1. Open http://localhost:4173, log in as a clerk, open **Record delivery** once (this caches centres, crops and farmers).
+2. DevTools (F12) → **Network** → set throttling to **Offline** (or stop the backend).
+3. Reload: the app still opens; the header shows **Offline**.
+4. Record a delivery: you get an `OFF-XXXX-0001` receipt; **Sync status** shows it as *Waiting to upload*.
+5. Set Network back to **No throttling**: within seconds the record becomes *On server* with an official receipt number.
+
+What the device stores and the offline security model are documented in
+[docs/ARCHITECTURE.md §6](docs/ARCHITECTURE.md) and at the top of `frontend/src/offline/db.ts`.
+
 ## Migration commands
 ```powershell
 alembic revision --autogenerate -m "describe change"   # after editing models; REVIEW the file

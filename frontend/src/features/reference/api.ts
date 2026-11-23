@@ -1,18 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '../../api/client'
+import { useAuth } from '../../context/AuthContext'
+import { cachedFetch } from '../../offline/cache'
 import type { Centre, Crop, Organization, Season } from '../../types/domain'
 
-export const useOrganization = () =>
-  useQuery({ queryKey: ['organization'], queryFn: () => api<Organization>('/organization'), staleTime: 300_000 })
+/** Reference data: fetched from the API, kept in IndexedDB so the intake screen works offline. */
+function useCachedQuery<T>(key: string, path: string) {
+  const { user } = useAuth()
+  const org = user?.organization_id ?? 'none'
+  return useQuery({
+    queryKey: [key, org], staleTime: 60_000, enabled: !!user,
+    queryFn: () => cachedFetch<T>(`${key}:${org}`, org, path),
+  })
+}
 
-export const useCentres = () =>
-  useQuery({ queryKey: ['centres'], queryFn: () => api<Centre[]>('/centres'), staleTime: 60_000 })
-
-export const useCrops = () =>
-  useQuery({ queryKey: ['crops'], queryFn: () => api<Crop[]>('/crops'), staleTime: 60_000 })
-
-export const useSeasons = () =>
-  useQuery({ queryKey: ['seasons'], queryFn: () => api<Season[]>('/seasons'), staleTime: 60_000 })
+export const useOrganization = () => useCachedQuery<Organization>('organization', '/organization')
+export const useCentres = () => useCachedQuery<Centre[]>('centres', '/centres')
+export const useCrops = () => useCachedQuery<Crop[]>('crops', '/crops')
+export const useSeasons = () => useCachedQuery<Season[]>('seasons', '/seasons')
 
 /** Generic mutation that refreshes the given query keys afterwards. */
 export function useApiMutation<TBody, TResult = unknown>(

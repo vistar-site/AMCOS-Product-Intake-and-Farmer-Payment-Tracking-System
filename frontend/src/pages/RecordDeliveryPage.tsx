@@ -6,13 +6,14 @@
  */
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { AlertTriangle, CheckCircle2, FileDown, Plus } from 'lucide-react'
-import { api, openFile } from '../api/client'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { AlertTriangle, CheckCircle2, CloudOff, FileDown, Plus, Printer } from 'lucide-react'
+import { openFile } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import FarmerPicker, { type PickedFarmer } from '../features/deliveries/FarmerPicker'
-import type { DeliveryCreateResult } from '../features/deliveries/api'
 import { useFarmer } from '../features/farmers/api'
-import { useApiMutation, useCentres, useCrops } from '../features/reference/api'
+import { useCentres, useCrops, useOrganization } from '../features/reference/api'
+import { captureDelivery, type CaptureResult } from '../offline/capture'
 import { fmtDateTime, Select, Textarea } from '../components/form'
 import { Alert, Button, Field, Input, PageHeader } from '../components/ui'
 import { formatKg, isValidWeight, netWeight, toGrams } from '../utils/weight'
@@ -21,7 +22,9 @@ import { readPref, rememberFarmer, writePref } from '../utils/prefs'
 interface Draft { farmer: PickedFarmer | null; centreId: string; cropId: string; gradeId: string; gross: string; tare: string; notes: string }
 
 export default function RecordDeliveryPage() {
-  const { user } = useAuth()
+  const { user, status } = useAuth()
+  const qc = useQueryClient()
+  const org = useOrganization()
   const [params] = useSearchParams()
   const centres = useCentres()
   const crops = useCrops()
@@ -35,7 +38,7 @@ export default function RecordDeliveryPage() {
   const [deliveryId, setDeliveryId] = useState(() => crypto.randomUUID())
   const [step, setStep] = useState<'enter' | 'review' | 'done'>('enter')
   const [errors, setErrors] = useState<Partial<Record<keyof Draft, string>>>({})
-  const [result, setResult] = useState<DeliveryCreateResult | null>(null)
+  const [result, setResult] = useState<CaptureResult | null>(null)
   const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }))
 
   // Sensible defaults: the only centre / the remembered one; remembered crop.
@@ -53,14 +56,20 @@ export default function RecordDeliveryPage() {
   const grades = crop?.grades.filter((g) => g.is_active) ?? []
   const net = netWeight(draft.gross, draft.tare)
 
-  const save = useApiMutation(() => api<DeliveryCreateResult>('/deliveries', {
-    method: 'POST',
-    json: {
-      id: deliveryId, farmer_id: draft.farmer!.id, centre_id: draft.centreId, crop_id: draft.cropId,
-      grade_id: draft.gradeId || null, gross_weight: draft.gross, tare_weight: draft.tare || '0',
-      captured_at: new Date().toISOString(), notes: draft.notes || null,
+  const save = useMutation({
+    mutationFn: () => {
+      const centre = activeCentres.find((c) => c.id === draft.centreId)!
+      const grade = grades.find((g) => g.id === draft.gradeId)
+      return captureDelivery({
+        id: deliveryId, farmerId: draft.farmer!.id, centreId: draft.centreId, cropId: draft.cropId,
+        gradeId: draft.gradeId || null, gross: draft.gross, tare: draft.tare || '0', net: net!,
+        notes: draft.notes || null, capturedAt: new Date().toISOString(),
+        display: { farmerName: draft.farmer!.full_name, membershipNo: draft.farmer!.membership_no,
+          centreName: centre.name, cropName: crop!.name, gradeName: grade?.name ?? null },
+      }, user!, status === 'offline')
     },
-  }), ['deliveries', 'farmers'])
+    onSuccess: (r) => { if (r.mode === 'online') qc.invalidateQueries({ queryKey: ['deliveries'] }) },
+  })
 
   function validate(): boolean {
     const e: typeof errors = {}
@@ -83,7 +92,7 @@ export default function RecordDeliveryPage() {
       onSuccess: (r) => {
         setResult(r)
         setStep('done')
-        rememberFarmer(r.delivery.farmer)
+        rememberFarmer(draft.farmer!)
         writePref('last-centre', draft.centreId)
         writePref('last-crop', draft.cropId)
       },
@@ -96,7 +105,37 @@ export default function RecordDeliveryPage() {
     setResult(null); save.reset(); setStep('enter')
   }
 
-  if (step === 'done' && result) {
+  if (step === 'done' && result?.mode === 'offline') {
+    const r = result.record
+    return (
+      <div className="mx-auto max-w-md">
+        <div className="rounded-xl bg-white p-6 text-center ring-1 ring-slate-200 print:ring-0">
+          <CloudOff className="mx-auto size-12 text-amber-500 print:hidden" />
+          <p className="text-sm font-semibold">{org.data?.name}</p>
+          <h1 className="mt-1 text-xl font-semibold">Delivery saved on this device</h1>
+          <p className="mt-1 text-sm text-slate-500">Offline receipt number</p>
+          <p className="font-mono text-2xl font-bold tracking-wide">{r.provisionalReceiptNo}</p>
+          <dl className="mt-5 space-y-1.5 text-left text-sm">
+            {[['Farmer', `${r.display.farmerName} (${r.display.membershipNo})`], ['Crop', r.display.cropName + (r.display.gradeName ? ` · ${r.display.gradeName}` : '')],
+              ['Gross / tare', `${formatKg(r.payload.gross_weight)} / ${formatKg(r.payload.tare_weight)}`], ['Centre', r.display.centreName],
+              ['Time', fmtDateTime(r.capturedAt)], ['Clerk', r.display.recorderName]]
+              .map(([k, v]) => <div key={k} className="flex justify-between gap-3"><dt className="text-slate-500">{k}</dt><dd className="text-right">{v}</dd></div>)}
+            <div className="flex justify-between border-t border-slate-100 pt-2 text-base"><dt className="font-medium">Net weight</dt><dd className="font-bold">{formatKg(r.display.net)}</dd></div>
+          </dl>
+          <p className="mt-3 break-all font-mono text-[10px] text-slate-400">Ref: {r.id}</p>
+          <div className="mt-4 print:hidden"><Alert tone="amber">
+            Not yet on the server. It will upload automatically when there is internet and receive an official receipt number. Check “Sync status”.
+          </Alert></div>
+          <div className="mt-6 grid gap-2 print:hidden">
+            <Button className="h-12 text-base" onClick={next}><Plus className="size-5" />Next delivery</Button>
+            <Button variant="secondary" onClick={() => window.print()}><Printer className="size-4" />Print receipt</Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (step === 'done' && result?.mode === 'online') {
     const d = result.delivery
     return (
       <div className="mx-auto max-w-md">
@@ -147,6 +186,7 @@ export default function RecordDeliveryPage() {
   return (
     <div className="mx-auto max-w-md">
       <PageHeader title="Record delivery" description={user?.full_name} />
+      {status === 'offline' && <div className="mb-4"><Alert tone="amber">Offline mode: deliveries are saved on this device and uploaded when the connection returns.</Alert></div>}
       {activeCentres.length === 0 && !centres.isLoading && <Alert tone="amber">You are not assigned to an active collection centre. Ask your manager.</Alert>}
       <form noValidate className="space-y-5" onSubmit={(e) => { e.preventDefault(); if (validate()) setStep('review') }}>
         <Field label="Farmer" htmlFor="farmer"><FarmerPicker value={draft.farmer} onChange={(f) => set({ farmer: f })} error={errors.farmer} /></Field>
