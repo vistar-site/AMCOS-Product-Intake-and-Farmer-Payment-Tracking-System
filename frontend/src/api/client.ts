@@ -86,6 +86,23 @@ export async function api<T>(path: string, init: RequestInit & { json?: unknown 
   return (r.status === 204 ? undefined : await r.json()) as T
 }
 
+/** POST/GET a file endpoint and save the response as a download (e.g. payment CSV/Excel). */
+export async function downloadFile(path: string, method: 'GET' | 'POST' = 'GET'): Promise<void> {
+  const doFetch = () => fetch(`/api/v1${path}`, {
+    method, headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}, credentials: 'same-origin',
+  })
+  let r = await doFetch()
+  if (r.status === 401 && await refreshAccessToken()) r = await doFetch()
+  if (!r.ok) throw await parseError(r)
+  const name = /filename="([^"]+)"/.exec(r.headers.get('Content-Disposition') ?? '')?.[1] ?? 'download'
+  const url = URL.createObjectURL(await r.blob())
+  const a = Object.assign(document.createElement('a'), { href: url, download: name })
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
 /** Download a file (e.g. a PDF) with the auth header and open it in a new tab. */
 export async function openFile(path: string): Promise<void> {
   const tab = window.open('', '_blank') // open synchronously so pop-up blockers allow it

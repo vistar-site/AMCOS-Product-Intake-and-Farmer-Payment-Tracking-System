@@ -14,6 +14,10 @@ import DeliveryDetailPage from '../pages/DeliveryDetailPage'
 import FarmerProfilePage from '../pages/FarmerProfilePage'
 import FarmersPage from '../pages/FarmersPage'
 import LoginPage from '../pages/LoginPage'
+import PaymentBatchPage from '../pages/PaymentBatchPage'
+import PaymentsPage from '../pages/PaymentsPage'
+import PayoutRunPage from '../pages/PayoutRunPage'
+import PayoutsPage from '../pages/PayoutsPage'
 import PlaceholderPage from '../pages/PlaceholderPage'
 import RecordDeliveryPage from '../pages/RecordDeliveryPage'
 import SyncPage from '../pages/SyncPage'
@@ -33,6 +37,8 @@ const BUILT: Record<string, React.ReactNode> = {
   '/batches': <BatchesPage />,
   '/warehouse': <WarehousePage />,
   '/auctions': <AuctionsPage />,
+  '/payouts': <PayoutsPage />,
+  '/payments': <PaymentsPage />,
 }
 const PHASE: Record<string, number> = {
   '/batches': 6, '/warehouse': 6, '/auctions': 6, '/payouts': 7, '/payments': 7,
@@ -61,6 +67,10 @@ export default function AppRoutes() {
           <Route element={<RequirePermission permission="auction.view" />}>
             <Route path="/batches/:id" element={<BatchDetailPage />} />
             <Route path="/auctions/:id" element={<AuctionDetailPage />} />
+          </Route>
+          <Route element={<RequirePermission permission="payout.view" />}>
+            <Route path="/payouts/:id" element={<PayoutRunPage />} />
+            <Route path="/payments/:id" element={<PaymentBatchPage />} />
           </Route>
           <Route path="*" element={<PlaceholderPage title="Page not found" phase={0} />} />
         </Route>

@@ -12,6 +12,7 @@ import { fmtDate, fmtDateTime, Pagination, Select } from '../components/form'
 import { Alert, Badge, Button, Field, Input, Modal, Skeleton } from '../components/ui'
 import { formatKg } from '../utils/weight'
 import { farmerStatusTone } from './FarmersPage'
+import FarmerStatement from '../features/finance/FarmerStatement'
 
 export default function FarmerProfilePage() {
   const { id = '' } = useParams()
@@ -91,7 +92,9 @@ export default function FarmerProfilePage() {
         </section>
       </div>
 
-      <section className="mt-6">
+      {can('farmer.view_financial') && <FarmerStatement farmerId={f.id} />}
+
+      <section className="mt-6 print:hidden">
         <h2 className="mb-3 font-semibold">Delivery history</h2>
         <div className="overflow-x-auto rounded-lg bg-white ring-1 ring-slate-200">
           <table className="min-w-full divide-y divide-slate-200 text-sm">

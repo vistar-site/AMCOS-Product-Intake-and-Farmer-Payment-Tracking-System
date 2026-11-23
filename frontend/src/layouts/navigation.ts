@@ -25,8 +25,8 @@ export const NAVIGATION: NavGroup[] = [
     { to: '/auctions', label: 'Auctions', icon: Gavel, permission: 'auction.view', ready: true },
   ] },
   { label: 'Finance', items: [
-    { to: '/payouts', label: 'Payouts', icon: Wallet, permission: 'payout.view' },
-    { to: '/payments', label: 'Payments', icon: Banknote, permission: 'payout.view' },
+    { to: '/payouts', label: 'Payouts', icon: Wallet, permission: 'payout.view', ready: true },
+    { to: '/payments', label: 'Payments', icon: Banknote, permission: 'payout.view', ready: true },
   ] },
   { label: 'Administration', items: [
     { to: '/reports', label: 'Reports', icon: BarChart3, permission: 'report.operational' },
