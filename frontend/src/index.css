@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+/* Design tokens: one place to change the brand colours. */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-brand-50: #eff8f1;
+  --color-brand-100: #d8eedd;
+  --color-brand-500: #2f8a4c;
+  --color-brand-600: #23703c;
+  --color-brand-700: #1c5a31;
+  --color-brand-900: #0f3420;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+}
