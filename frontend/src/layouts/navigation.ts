@@ -29,10 +29,11 @@ export const NAVIGATION: NavGroup[] = [
     { to: '/payments', label: 'Payments', icon: Banknote, permission: 'payout.view', ready: true },
   ] },
   { label: 'Administration', items: [
-    { to: '/reports', label: 'Reports', icon: BarChart3, permission: 'report.operational' },
-    { to: '/notifications', label: 'SMS & notifications', icon: MessageSquare, permission: 'notification.manage' },
+    { to: '/reports', label: 'Reports', icon: BarChart3, permission: 'report.operational', ready: true },
+    { to: '/sync-review', label: 'Sync review', icon: RefreshCw, permission: 'delivery.amend_approve', ready: true },
+    { to: '/notifications', label: 'SMS & notifications', icon: MessageSquare, permission: 'notification.manage', ready: true },
     { to: '/users', label: 'Users', icon: UserCog, permission: 'user.view', ready: true },
-    { to: '/audit', label: 'Audit trail', icon: FileClock, permission: 'audit.view' },
-    { to: '/settings', label: 'Settings', icon: Settings, permission: 'settings.manage' },
+    { to: '/audit', label: 'Audit trail', icon: FileClock, permission: 'audit.view', ready: true },
+    { to: '/settings', label: 'Settings', icon: Settings, permission: 'centre.view', ready: true },
   ] },
 ]

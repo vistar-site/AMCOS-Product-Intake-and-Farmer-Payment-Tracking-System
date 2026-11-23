@@ -232,7 +232,8 @@ def rpt_auction_sales(db, actor, f):
     org = org_id(actor)
     stmt = (select(Auction.auction_ref, Auction.auction_date, Crop.name, AuctionLot.lot_no, AggregationBatch.batch_no,
                    AuctionLot.quantity_sold, AuctionLot.price_per_kg, AuctionLot.total_value, AuctionLot.buyer, Auction.status)
-            .join(AuctionLot).join(Crop, Crop.id == Auction.crop_id).join(AggregationBatch, AggregationBatch.id == AuctionLot.batch_id)
+            .select_from(Auction).join(AuctionLot, AuctionLot.auction_id == Auction.id).join(Crop, Crop.id == Auction.crop_id)
+            .join(AggregationBatch, AggregationBatch.id == AuctionLot.batch_id)
             .where(Auction.organization_id == org))
     if f.date_from:
         stmt = stmt.where(Auction.auction_date >= f.date_from)

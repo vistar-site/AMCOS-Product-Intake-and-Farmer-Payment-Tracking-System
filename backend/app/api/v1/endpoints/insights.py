@@ -1,6 +1,7 @@
 """Dashboard, reports, audit trail, notifications, settings and sync review."""
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -20,11 +21,24 @@ router = APIRouter()
 db_dep = Depends(get_db)
 
 
+def exact(obj):
+    """Endpoints without a response_model would let FastAPI turn Decimal into float
+    (2001000.00 -> 2001000.0, and worse for large or fractional values). Money and weights
+    must stay exact, so convert every Decimal to its exact string first."""
+    if isinstance(obj, Decimal):
+        return str(obj)
+    if isinstance(obj, dict):
+        return {k: exact(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [exact(v) for v in obj]
+    return obj
+
+
 # ---------------- dashboard
 @router.get("/dashboard", tags=["dashboard"])
 def dashboard(date_from: datetime | None = None, date_to: datetime | None = None, crop_id: uuid.UUID | None = None,
               centre_id: uuid.UUID | None = None, u: User = Depends(require_permission("delivery.view")), db: Session = db_dep):
-    return dashboard_service.dashboard(db, u, date_from=date_from, date_to=date_to, crop_id=crop_id, centre_id=centre_id)
+    return exact(dashboard_service.dashboard(db, u, date_from=date_from, date_to=date_to, crop_id=crop_id, centre_id=centre_id))
 
 
 # ---------------- reports
@@ -43,9 +57,9 @@ def report_catalogue(u: User = Depends(require_permission("delivery.view"))):
 def report_preview(code: str, f: report_service.Filters = Depends(_filters),
                    u: User = Depends(require_permission("delivery.view")), db: Session = db_dep):
     r = report_service.run(db, u, code, f)
-    return {"code": r.code, "title": r.title, "filters_text": r.filters_text, "generated_at": r.generated_at,
-            "columns": [c.__dict__ for c in r.columns], "rows": r.rows[:1000], "row_count": len(r.rows),
-            "truncated": len(r.rows) > 1000, "totals": r.totals}
+    return exact({"code": r.code, "title": r.title, "filters_text": r.filters_text, "generated_at": r.generated_at,
+                  "columns": [c.__dict__ for c in r.columns], "rows": r.rows[:1000], "row_count": len(r.rows),
+                  "truncated": len(r.rows) > 1000, "totals": r.totals})
 
 
 @router.get("/reports/{code}/export", tags=["reports"])

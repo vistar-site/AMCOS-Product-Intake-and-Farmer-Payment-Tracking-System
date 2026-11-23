@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { Printer } from 'lucide-react'
-import { api } from '../../api/client'
+import { FileDown, Printer } from 'lucide-react'
+import { api, openFile } from '../../api/client'
 import { fmtDate, fmtDateTime } from '../../components/form'
 import { Badge, Button, Skeleton } from '../../components/ui'
 import type { Statement } from '../../types/finance'
@@ -19,7 +19,10 @@ export default function FarmerStatement({ farmerId }: { farmerId: string }) {
     <section className="mt-6 rounded-lg bg-white p-5 ring-1 ring-slate-200 print:ring-0">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-semibold">Payout statement</h2>
-        <Button variant="secondary" className="print:hidden" onClick={() => window.print()}><Printer className="size-4" />Print statement</Button>
+        <div className="flex gap-2 print:hidden">
+          <Button variant="secondary" onClick={() => openFile(`/farmers/${farmerId}/statement.pdf`)}><FileDown className="size-4" />PDF</Button>
+          <Button variant="secondary" onClick={() => window.print()}><Printer className="size-4" />Print</Button>
+        </div>
       </div>
       <dl className="grid gap-3 text-sm sm:grid-cols-4">
         {([['Delivered', formatKg(t.delivered_kg)], ['Paid weight', formatKg(t.eligible_kg)], ['Gross earnings', formatTZS(t.gross)],

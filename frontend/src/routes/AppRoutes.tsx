@@ -1,6 +1,11 @@
 import { Route, Routes } from 'react-router-dom'
 import AppLayout from '../layouts/AppLayout'
 import { NAVIGATION } from '../layouts/navigation'
+import AuditPage from '../pages/AuditPage'
+import NotificationsPage from '../pages/NotificationsPage'
+import ReportsPage from '../pages/ReportsPage'
+import SettingsPage from '../pages/SettingsPage'
+import SyncReviewPage from '../pages/SyncReviewPage'
 import AuctionDetailPage from '../pages/AuctionDetailPage'
 import AuctionsPage from '../pages/AuctionsPage'
 import BatchDetailPage from '../pages/BatchDetailPage'
@@ -39,6 +44,11 @@ const BUILT: Record<string, React.ReactNode> = {
   '/auctions': <AuctionsPage />,
   '/payouts': <PayoutsPage />,
   '/payments': <PaymentsPage />,
+  '/reports': <ReportsPage />,
+  '/notifications': <NotificationsPage />,
+  '/audit': <AuditPage />,
+  '/settings': <SettingsPage />,
+  '/sync-review': <SyncReviewPage />,
 }
 const PHASE: Record<string, number> = {
   '/batches': 6, '/warehouse': 6, '/auctions': 6, '/payouts': 7, '/payments': 7,

@@ -40,6 +40,18 @@ export default defineConfig({
       devOptions: { enabled: false },           // SW only in production builds (see docs)
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // Separate long-lived vendor chunks: they change rarely, so phones keep them cached
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          data: ['@tanstack/react-query', 'dexie', 'zod', 'react-hook-form'],
+          charts: ['recharts'],
+        },
+      },
+    },
+  },
   server: {
     host: true,
     port: 5173,

@@ -47,6 +47,15 @@ npm run preview          # http://localhost:4173 (proxies /api to the backend on
 What the device stores and the offline security model are documented in
 [docs/ARCHITECTURE.md §6](docs/ARCHITECTURE.md) and at the top of `frontend/src/offline/db.ts`.
 
+## SMS notifications
+
+`SMS_PROVIDER=mock` (the default) records every message as **simulated** — nothing is sent
+to phones. Numbers ending in `000` simulate a failure so the retry path can be tested.
+To connect a real gateway, add a class implementing `SmsProvider` in
+`backend/app/integrations/sms/` using the provider's documented API and credentials
+(kept in `.env`), register it in `get_provider()`, then set `SMS_PROVIDER` accordingly.
+Messages are queued in the same transaction as the delivery/payment and sent after commit.
+
 ## Migration commands
 ```powershell
 alembic revision --autogenerate -m "describe change"   # after editing models; REVIEW the file
