@@ -11,7 +11,12 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import get_settings
 
-engine = create_engine(get_settings().database_url, pool_pre_ping=True)
+engine = create_engine(
+    get_settings().database_url,
+    pool_pre_ping=True,                     # test each pooled connection before use
+    pool_recycle=240,                       # replace connections before a hosted DB (e.g. Neon) drops idle ones
+    connect_args={"connect_timeout": 15},   # allow a suspended serverless database time to wake up
+)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 

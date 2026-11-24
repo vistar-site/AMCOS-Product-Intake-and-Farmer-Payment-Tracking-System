@@ -21,3 +21,6 @@ Thumbs.db
 # Local backups and uploads
 backups/
 uploads/
+
+# Local demo credentials - never commit
+Demo_credentials.txt
