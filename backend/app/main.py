@@ -7,8 +7,8 @@ from sqlalchemy.exc import OperationalError
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
-from backend.app.database.core.config import get_settings
-from backend.app.database.core.exceptions import AppError, app_error_handler
+from app.core.config import get_settings
+from app.core.exceptions import AppError, app_error_handler
 
 settings = get_settings()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")

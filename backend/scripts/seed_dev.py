@@ -17,8 +17,8 @@ from datetime import date
 
 from sqlalchemy import select
 
-from backend.app.database.core.config import get_settings
-from backend.app.database.core.security import hash_password
+from app.core.config import get_settings
+from app.core.security import hash_password
 from app.database.session import SessionLocal
 from app.models import CollectionCentre, Crop, CropGrade, Farmer, Organization, Role, Season, User, Warehouse
 from scripts.bootstrap import sync_roles_and_permissions

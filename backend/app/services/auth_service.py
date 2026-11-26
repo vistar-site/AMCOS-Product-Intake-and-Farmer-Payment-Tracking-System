@@ -5,8 +5,8 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
-from backend.app.database.core.exceptions import AuthenticationError, ValidationFailedError
-from backend.app.database.core.security import (
+from app.core.exceptions import AuthenticationError, ValidationFailedError
+from app.core.security import (
     REFRESH_TOKEN_DAYS, create_access_token, hash_password, hash_refresh_token,
     new_refresh_token, validate_password_strength, verify_password,
 )

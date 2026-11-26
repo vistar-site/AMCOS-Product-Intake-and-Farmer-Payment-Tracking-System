@@ -7,7 +7,7 @@ Two layers of restriction beyond permissions:
 """
 import uuid
 
-from backend.app.database.core.exceptions import PermissionDeniedError
+from app.core.exceptions import PermissionDeniedError
 from app.models import User
 
 

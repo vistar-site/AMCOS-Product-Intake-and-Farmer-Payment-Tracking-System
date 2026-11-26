@@ -8,8 +8,8 @@ import uuid
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from backend.app.database.core.exceptions import ConflictError, NotFoundError, PermissionDeniedError, ValidationFailedError
-from backend.app.database.core.security import hash_password, validate_password_strength
+from app.core.exceptions import ConflictError, NotFoundError, PermissionDeniedError, ValidationFailedError
+from app.core.security import hash_password, validate_password_strength
 from app.models import CollectionCentre, Role, User
 from app.schemas.user import UserCreate, UserUpdate
 from app.services import audit_service

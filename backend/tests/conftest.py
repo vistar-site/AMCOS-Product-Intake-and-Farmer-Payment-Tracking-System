@@ -11,8 +11,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from backend.app.database.core import rate_limit
-from backend.app.database.core.security import hash_password
+from app.core import rate_limit
+from app.core.security import hash_password
 from app.database.session import engine, get_db
 from app.main import app
 from app.models import CollectionCentre, Organization, Role, User

@@ -14,8 +14,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from backend.app.database.core.exceptions import AuthenticationError, PermissionDeniedError
-from backend.app.database.core.security import decode_access_token
+from app.core.exceptions import AuthenticationError, PermissionDeniedError
+from app.core.security import decode_access_token
 from app.database.session import get_db
 from app.models import Role, User
 

@@ -3,9 +3,9 @@ from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
-from backend.app.database.core.config import get_settings
-from backend.app.database.core.rate_limit import login_rate_limit
-from backend.app.database.core.security import REFRESH_TOKEN_DAYS
+from app.core.config import get_settings
+from app.core.rate_limit import login_rate_limit
+from app.core.security import REFRESH_TOKEN_DAYS
 from app.database.session import get_db
 from app.models import User
 from app.schemas.auth import ChangePasswordRequest, LoginRequest, MeResponse, TokenResponse

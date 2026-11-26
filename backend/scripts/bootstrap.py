@@ -8,7 +8,7 @@ updates role->permission links, never deletes users or business data.
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from backend.app.database.core.permissions import PERMISSIONS, ROLES
+from app.core.permissions import PERMISSIONS, ROLES
 from app.database.session import SessionLocal
 from app.models import Permission, Role
 

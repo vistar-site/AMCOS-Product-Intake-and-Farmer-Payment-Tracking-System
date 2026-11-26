@@ -6,7 +6,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
-from backend.app.database.core.exceptions import ConflictError, NotFoundError, ValidationFailedError
+from app.core.exceptions import ConflictError, NotFoundError, ValidationFailedError
 from app.models import CollectionCentre, Crop, Delivery, Farmer, Organization, User
 from app.schemas.farmer import FarmerCreate, FarmerCropSummary, FarmerSummary, FarmerUpdate
 from app.services import audit_service
