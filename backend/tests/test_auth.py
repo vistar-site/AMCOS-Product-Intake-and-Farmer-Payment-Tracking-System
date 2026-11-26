@@ -1,6 +1,6 @@
 from sqlalchemy import select
 
-from app.core.security import create_access_token
+from backend.app.database.core.security import create_access_token
 from app.models import AuditLog
 from tests.conftest import TEST_PASSWORD
 

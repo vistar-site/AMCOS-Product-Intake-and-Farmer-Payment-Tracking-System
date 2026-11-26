@@ -16,7 +16,7 @@ from datetime import UTC, datetime, timedelta
 import jwt
 from pwdlib import PasswordHash
 
-from app.core.config import get_settings
+from backend.app.database.core.config import get_settings
 
 _hasher = PasswordHash.recommended()  # Argon2id
 

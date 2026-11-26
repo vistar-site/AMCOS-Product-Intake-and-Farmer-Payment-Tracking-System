@@ -14,7 +14,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.exceptions import AppError, ConflictError, NotFoundError, PermissionDeniedError, ValidationFailedError
+from backend.app.database.core.exceptions import AppError, ConflictError, NotFoundError, PermissionDeniedError, ValidationFailedError
 from app.models import (
     CollectionCentre, Crop, CropGrade, Delivery, DeliveryAmendment, Farmer, Organization, Season, SyncLog, User,
 )

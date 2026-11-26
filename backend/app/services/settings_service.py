@@ -11,7 +11,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import ValidationFailedError
+from backend.app.database.core.exceptions import ValidationFailedError
 from app.models import Setting, User
 from app.services import audit_service
 

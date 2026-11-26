@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import select, text
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
-from app.core.permissions import ROLES
+from backend.app.database.core.permissions import ROLES
 from app.models import AuditLog, CollectionCentre, Farmer, Organization, Role, Season, User
 
 

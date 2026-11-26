@@ -17,8 +17,8 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from app.core.config import get_settings
-from app.core.exceptions import NotFoundError, ValidationFailedError
+from backend.app.database.core.config import get_settings
+from backend.app.database.core.exceptions import NotFoundError, ValidationFailedError
 from app.integrations.sms.base import SendResult
 from app.integrations.sms.mock import get_provider
 from app.models import Delivery, Farmer, Organization, Payment, SmsMessage, SmsTemplate, User

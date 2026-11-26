@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import Date, and_, cast, func, select
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import NotFoundError, PermissionDeniedError
+from backend.app.database.core.exceptions import NotFoundError, PermissionDeniedError
 from app.models import (
     AggregationBatch, Auction, AuctionLot, CollectionCentre, Crop, DeductionType, Delivery, Discrepancy, DispatchBatch,
     Farmer, FarmerPayout, InputLoan, Organization, Payment, PaymentBatch, PayoutLine, PayoutRun, Season, User, Warehouse,

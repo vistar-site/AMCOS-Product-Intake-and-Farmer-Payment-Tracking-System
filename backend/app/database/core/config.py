@@ -6,6 +6,7 @@ refuses to start with a clear error, instead of failing later at random.
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
@@ -25,6 +26,16 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
     timezone: str = "Africa/Dar_es_Salaam"
     sms_provider: str = "mock"   # only "mock" is implemented; see app/integrations/sms/
+
+    @field_validator("database_url")
+    @classmethod
+    def use_psycopg3_driver(cls, v: str) -> str:
+        # Hosting providers (Vercel/Neon, Heroku...) hand out postgres:// or postgresql:// URLs,
+        # which SQLAlchemy maps to psycopg2. This project ships psycopg (v3).
+        for prefix in ("postgres://", "postgresql://"):
+            if v.startswith(prefix):
+                return "postgresql+psycopg://" + v[len(prefix):]
+        return v
 
     @property
     def cors_origin_list(self) -> list[str]:

@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.exceptions import ConflictError, NotFoundError, ValidationFailedError
+from backend.app.database.core.exceptions import ConflictError, NotFoundError, ValidationFailedError
 from app.models import (
     AggregationBatch, AuctionLot, BatchDelivery, CollectionCentre, Crop, Delivery, Discrepancy, DispatchBatch,
     LotAllocation, Organization, Season, User, Warehouse, WarehouseDispatch, WarehouseReceipt, WarehouseReceiptLine,

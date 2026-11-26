@@ -7,7 +7,7 @@ import sys
 
 from sqlalchemy import select
 
-from app.core.security import hash_password, validate_password_strength
+from backend.app.database.core.security import hash_password, validate_password_strength
 from app.database.session import SessionLocal
 from app.models import AuditLog, User
 

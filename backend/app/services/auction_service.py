@@ -14,7 +14,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.exceptions import ConflictError, NotFoundError, PermissionDeniedError, ValidationFailedError
+from backend.app.database.core.exceptions import ConflictError, NotFoundError, PermissionDeniedError, ValidationFailedError
 from app.models import (
     AggregationBatch, Auction, AuctionLot, BatchDelivery, Crop, CropGrade, LotAllocation, Season, User,
     WarehouseReceiptLine,
