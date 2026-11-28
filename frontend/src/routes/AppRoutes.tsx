@@ -18,6 +18,7 @@ import DeliveriesPage from '../pages/DeliveriesPage'
 import DeliveryDetailPage from '../pages/DeliveryDetailPage'
 import FarmerProfilePage from '../pages/FarmerProfilePage'
 import FarmersPage from '../pages/FarmersPage'
+import LandingPage from '../pages/LandingPage'
 import LoginPage from '../pages/LoginPage'
 import PaymentBatchPage from '../pages/PaymentBatchPage'
 import PaymentsPage from '../pages/PaymentsPage'
@@ -60,6 +61,7 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/welcome" element={<LandingPage />} />
       <Route element={<RequireAuth />}>
         <Route path="/change-password" element={<ChangePasswordPage />} />
         <Route element={<AppLayout />}>
